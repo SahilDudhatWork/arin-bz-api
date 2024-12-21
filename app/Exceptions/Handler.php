@@ -4,6 +4,7 @@ namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
+use Symfony\Component\Routing\Exception\RouteNotFoundException;
 
 class Handler extends ExceptionHandler
 {
@@ -35,6 +36,11 @@ class Handler extends ExceptionHandler
                 'message' => 'Validation failed.',
                 'errors' => $exception->errors(),
             ], 422);
+        }
+        if ($exception instanceof RouteNotFoundException) {
+            return response()->json([
+                'error' => 'Unauthorized.',
+            ], 401);
         }
 
         return parent::render($request, $exception);

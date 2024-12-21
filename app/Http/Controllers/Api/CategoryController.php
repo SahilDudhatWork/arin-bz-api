@@ -11,9 +11,13 @@ class CategoryController extends Controller
 {
     public function index()
     {
-        // Fetch all categories
-        $categories = Category::all();
-        return $this->responseSuccess(['categories' => $categories]);
+        try {
+            // Fetch all categories
+            $categories = Category::all();
+            return $this->responseSuccess(['categories' => $categories], 'Categories fetched successfully');
+        } catch (\Exception $e) {
+            return $this->responseError($e->getMessage(), 404);
+        }
     }
 
     public function store(Request $request)
@@ -21,7 +25,7 @@ class CategoryController extends Controller
         try {
             // Create a new category
             $category = Category::create($request->all());
-            return $this->responseSuccess(['category' => $category]);
+            return $this->responseSuccess(['category' => $category], 'Category created successfully');
         } catch (\Exception $e) {
             return $this->responseError($e->getMessage(), 404);
         }

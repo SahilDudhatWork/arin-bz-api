@@ -13,7 +13,7 @@ class AmenityController extends Controller
     {
         // Fetch all amenities
         $amenities = Amenity::all();
-        return $this->responseSuccess(['amenities' => $amenities]);
+        return $this->responseSuccess(['amenities' => $amenities], 'Amenities fetched successfully');
     }
 
     public function store(Request $request)
@@ -21,7 +21,7 @@ class AmenityController extends Controller
         try {
             // Create a new amenity
             $amenity = Amenity::create($request->all());
-            return $this->responseSuccess(['amenity' => $amenity]);
+            return $this->responseSuccess(['amenity' => $amenity], 'Amenity created successfully');
         } catch (\Exception $e) {
             return $this->responseError($e->getMessage(), 404);
         }

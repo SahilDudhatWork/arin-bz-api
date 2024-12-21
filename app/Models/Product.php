@@ -15,6 +15,7 @@ class Product extends Model
      * @var array
      */
     protected $fillable = [
+        'business_id',
         'name',
         'number_of_bedrooms',
         'number_of_bathrooms',
@@ -51,5 +52,9 @@ class Product extends Model
     public function media()
     {
         return $this->belongsToMany(Media::class, 'product_media', 'product_id', 'media_id');
+    }
+    public function business()
+    {
+        return $this->belongsTo(Business::class, 'business_id');
     }
 }

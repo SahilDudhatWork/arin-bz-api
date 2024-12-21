@@ -40,6 +40,14 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        'api' => [
+            'driver' => 'jwt',  // Use JWT for Influencers
+            'provider' => 'users',
+        ],
+        'business' => [ // New guard for Business
+            'driver' => 'jwt',  // Use JWT for Businesses
+            'provider' => 'businesses',
+        ],
     ],
 
     /*
@@ -62,13 +70,12 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => App\Models\User::class,
+            'model' => App\Models\User::class, // Model for Influencers
         ],
-
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        'businesses' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Business::class, // Model for Businesses
+        ],
     ],
 
     /*
@@ -93,9 +100,13 @@ return [
     'passwords' => [
         'users' => [
             'provider' => 'users',
-            'table' => 'password_reset_tokens',
+            'table' => 'password_resets',
             'expire' => 60,
-            'throttle' => 60,
+        ],
+        'businesses' => [
+            'provider' => 'businesses',
+            'table' => 'password_resets',
+            'expire' => 60,
         ],
     ],
 
