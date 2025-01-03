@@ -129,6 +129,36 @@ class BusinessController extends Controller
             return $this->responseError($e->getMessage(), 404);
         }
     }
+    public function profile(Request $request)
+    {
+        try {
+            $business = auth('business')->user();
+
+            if (!$business) {
+                return $this->responseError('Business not found', 404);
+            }
+
+            return $this->responseSuccess(['business' => $business], 'Profile fetched successfully');
+        } catch (\Exception $e) {
+            return $this->responseError($e->getMessage(), 404);
+        }
+    }
+    public function updateProfile(Request $request)
+    {
+        try {
+            $business = auth('business')->user();
+            $businessDtl = Business::find($business->id);
+
+            if (!$businessDtl) {
+                return $this->responseError('Business not found', 404);
+            }
+
+            $businessDtl->update($request->all());
+            return $this->responseSuccess(['business' => $businessDtl], 'Business-profile updated successfully');
+        } catch (\Exception $e) {
+            return $this->responseError($e->getMessage(), 404);
+        }
+    }
 
 
     public function update(UpdateBusinessRequest $request, $id)

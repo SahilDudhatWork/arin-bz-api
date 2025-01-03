@@ -26,21 +26,25 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::post('/login', [BusinessController::class, 'login']);
 Route::post('/check-otp', [BusinessController::class, 'checkOtp']);
+Route::post('/businesses', [BusinessController::class, 'store']); // Create a new business
+Route::put('/businesses/{business}', [BusinessController::class, 'update']); // Update a business
+Route::get('categories', [CategoryController::class, 'index']); // Get all categories
+Route::post('categories', [CategoryController::class, 'store']); // Create a category
+Route::get(
+    'amenities',
+    [AmenityController::class, 'index']
+); // Get all amenities
+Route::post('amenities', [AmenityController::class, 'store']); // Create a amenities
 
 Route::middleware('auth:business')->group(function () {
+    Route::get('/business-profile', [BusinessController::class, 'profile']);
+    Route::put('/business-profile', [BusinessController::class, 'updateProfile']);
+
     Route::get('/products', [ProductController::class, 'index']);
     Route::get('/businesses', [BusinessController::class, 'index']); // Get all businesses
-    Route::post('/businesses', [BusinessController::class, 'store']); // Create a new business
     Route::get('/businesses/{business}', [BusinessController::class, 'show']); // Get a single business
-    Route::put('/businesses/{business}', [BusinessController::class, 'update']); // Update a business
     Route::delete('/businesses/{business}', [BusinessController::class, 'destroy']); // Delete a business
-    Route::get('categories', [CategoryController::class, 'index']); // Get all categories
-    Route::post('categories', [CategoryController::class, 'store']); // Create a category
-    Route::get(
-        'amenities',
-        [AmenityController::class, 'index']
-    ); // Get all amenities
-    Route::post('amenities', [AmenityController::class, 'store']); // Create a amenities
+
 
     Route::post('products', [ProductController::class, 'store']); // Create a products
     Route::get('/products/{product}', [ProductController::class, 'show']); // Get a single products
