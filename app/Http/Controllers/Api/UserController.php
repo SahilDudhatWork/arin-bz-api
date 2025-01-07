@@ -7,12 +7,13 @@ use App\Http\Requests\StoreBusinessRequest;
 use App\Http\Requests\UpdateBusinessRequest;
 use App\Http\Requests\UpdateBusinessProfileRequest;
 use App\Models\Business;
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Services\SmsService;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 
-class BusinessController extends Controller
+class UserController extends Controller
 {
     protected $smsService;
 
@@ -103,14 +104,18 @@ class BusinessController extends Controller
         }
     }
 
-    public function store(StoreBusinessRequest $request)
+    public function store(Request $request)
     {
         try {
-            // Create a new business using validated data
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|string|email|max:255|unique:users',
+                'number' => 'required|string|max:15|unique:users',
+                'password' => 'required|string|min:8|confirmed',
+            ]);
+            $user = User::create($validated);
 
-            $business = Business::create($request->validated());
-
-            return $this->responseSuccess(['business' => $business], 'Business created successfully');
+            return $this->responseSuccess(['user' => $user], 'User registered successfully.');
         } catch (\Exception $e) {
             return $this->responseError($e->getMessage(), 404);
         }

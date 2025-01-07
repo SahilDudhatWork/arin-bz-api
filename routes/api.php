@@ -5,8 +5,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\BusinessController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\AmenityController;
+use App\Http\Controllers\Api\ProductAvailabilityController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ProductMediaController;
+use App\Http\Controllers\Api\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -51,4 +53,8 @@ Route::middleware('auth:business')->group(function () {
     Route::put('/products/{product}', [ProductController::class, 'update']); // Update a products
 
     Route::post('/products/{productId}/upload-images', [ProductMediaController::class, 'uploadImages']);
+
+    Route::post('/product-availability', [ProductAvailabilityController::class, 'store']);
 });
+
+Route::post('/register', [UserController::class, 'store']); // Create a new business

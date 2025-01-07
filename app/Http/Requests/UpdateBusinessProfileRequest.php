@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UpdateBusinessRequest extends FormRequest
+class UpdateBusinessProfileRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -34,8 +34,7 @@ class UpdateBusinessRequest extends FormRequest
                 'string',
                 'regex:/^\+?[0-9]{10,15}$/', //   
                 'max:15',
-                Rule::unique('businesses', 'business_number')->ignore($this->route('business')), // Adjust the `id` as per your input
-
+                Rule::unique('businesses', 'business_number')->ignore(auth('business')->id()), // Ignore current business's number
             ],
             'category_id' => 'sometimes|required|exists:categories,id', // Category ID is required if present            
         ];

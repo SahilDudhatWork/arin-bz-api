@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Media;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
 
 class ProductMediaController extends Controller
@@ -18,6 +19,12 @@ class ProductMediaController extends Controller
             ]);
 
             $product = Product::findOrFail($productId);
+
+            // Delete existing images from the database and storage
+            foreach ($product->media as $existingMedia) {
+                Storage::disk('public')->delete($existingMedia->file_path); // Delete file from storage
+                $existingMedia->delete(); // Delete record from database
+            }
 
             // Upload Hero Image
             if ($request->hasFile('hero_image')) {

@@ -15,6 +15,7 @@ class Business extends Authenticatable implements JWTSubject // If using JWT
     protected $fillable = [
         'business_name',
         'business_number',
+        'business_email',
         'business_description',
         'category_id',
         'phone_otp',
