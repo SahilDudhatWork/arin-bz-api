@@ -53,24 +53,27 @@ class ProductController extends Controller
             return $this->responseError($e->getMessage(), 404);
         }
     }
-    public function geocodeLocation($location)
-    {
-        $apiKey = 'Fst7FO0XbYOKGdjoRlN5X2MSC3oldg2GK3CcTubL';
-        $geocodeUrl = "https://api.olamaps.io/places/v1/geocode?address=" . urlencode($location) . "&api_key=" . $apiKey;
-        try {
-            $response = file_get_contents($geocodeUrl);
-            $data = json_decode($response, true);
-            if (!empty($data['geocodingResults'])) {
-                $geometry = $data['geocodingResults'][0]['geometry']['location'];
-                return [
-                    'latitude' => $geometry['lat'],
-                    'longitude' => $geometry['lng']
-                ];
-            }
 
-            return null; // No results found
+    public function getProductsByCity(Request $request)
+    {
+        try {
+            $city = $request->input('city'); // Get the search keyword from the request
+            $products = Product::with(['business', 'amenities', 'media'])->where('city', $city)->latest()->get();
+
+            return $this->responseSuccess(['products' => $products], 'Products fetched successfully');
         } catch (\Exception $e) {
-            return null; // Handle errors gracefully
+            return $this->responseError($e->getMessage(), 404);
+        }
+    }
+
+    public function getProductsById($id)
+    {
+        try {
+            $product = Product::with(['business', 'amenities', 'media'])->find($id);
+
+            return $this->responseSuccess(['product' => $product], 'Product fetched successfully');
+        } catch (\Exception $e) {
+            return $this->responseError($e->getMessage(), 404);
         }
     }
 
@@ -79,37 +82,17 @@ class ProductController extends Controller
         try {
             $keyword = $request->input('keyword'); // Get the search keyword from the request
 
-            $results = Product::with(['media'])
+            $products = Product::with(['media'])
                 ->when(!empty($keyword), function ($query) use ($keyword) {
                     $query->where(function ($q) use ($keyword) {
                         $q->where('name', 'LIKE', "%{$keyword}%")
+                            ->orWhere('city', 'LIKE', "%{$keyword}%")
                             ->orWhere('location', 'LIKE', "%{$keyword}%")
                             ->orWhere('description', 'LIKE', "%{$keyword}%");
                     });
                 })->latest()
                 ->get();
-            if (isset($results) && count($results) == 0) {
-                return $this->responseSuccess(['products' => $results], 'Products fetched successfully');
-            } else {
-                $coordinates = $this->geocodeLocation($keyword);
-                if (!$coordinates) {
-                    return $this->responseError('Could not fetch location.', 404);
-                }
-                $latitude = $coordinates['latitude'];
-                $longitude = $coordinates['longitude'];
-                $radius = 10000; // You can adjust this value (in kilometers)
-
-                $products = Product::with(['business', 'amenities', 'media'])
-                    ->whereRaw(
-                        '(6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude)))) <= ?',
-                        [$latitude, $longitude, $latitude, $radius]
-                    )
-                    ->latest()
-                    ->get();
-                return $this->responseSuccess(['products' => $products], 'Products fetched successfully');
-            }
-
-            return $this->responseSuccess(['products' => []], 'Products fetched successfully');
+            return $this->responseSuccess(['products' => $products], 'Products fetched successfully');
         } catch (\Exception $e) {
             return $this->responseError($e->getMessage(), 404);
         }

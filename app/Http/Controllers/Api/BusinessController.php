@@ -66,7 +66,7 @@ class BusinessController extends Controller
         $phoneOtp = rand(100000, 999999);
         $phoneOtpExp = now()->addMinutes(10); // Set OTP expiration 10 minutes from now
 
-        $otpMessage = 'Your OTP is: ' . $phoneOtp . '. This is valid for 10 mins. Do not share it with anyone. - GLOBE TECHNOLOGIES';
+        $otpMessage = 'Your OTP for Registration is: ' . $phoneOtp . ' This is valid for 10 mins. Do not share it with anyone. - GLOBE TECHNOLOGIES';
         try {
             $toNumber = $request->phone;
             $response = $this->smsService->sendSms($otpMessage, $toNumber);

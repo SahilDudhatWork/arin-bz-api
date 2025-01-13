@@ -74,10 +74,13 @@ Route::prefix('user')->group(function () {
     Route::put('/update/{id}', [UserController::class, 'update']); // Update user details
     Route::post('/login', [UserController::class, 'login']); // User login
     Route::post('/check-otp', [UserController::class, 'checkOtp']); // Check OTP
+    Route::post('/send-otp', [UserController::class, 'sendOtp']);
     Route::middleware('auth:api')->group(function () {
 
         Route::get('/get-all-products', [ProductController::class, 'getAllProduct']);
         Route::post('/create-inquiry', [ProductInquiryController::class, 'store']);
+        Route::get('/get-search-products', [ProductController::class, 'getSearchProduct']);
+        Route::get('/get-products-by-city', [ProductController::class, 'getProductsByCity']);
+        Route::get('/get-product/{id}', [ProductController::class, 'getProductsById']);
     });
-    Route::get('/get-search-products', [ProductController::class, 'getSearchProduct']);
 });

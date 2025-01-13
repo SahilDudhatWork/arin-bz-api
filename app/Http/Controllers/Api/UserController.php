@@ -93,6 +93,34 @@ class UserController extends Controller
         return $this->responseError('Invalid OTP. Please try again.', 422);
     }
 
+    public function sendOtp(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|string|regex:/^\+?[0-9]{10,15}$/',
+        ]);
+        $user = User::where('number', $request->phone)->first();
+        if (!$user) {
+            return $this->responseError('Number is not registered.', 404);
+        }
+
+
+        $phoneOtp = rand(100000, 999999);
+        $phoneOtpExp = now()->addMinutes(10); // Set OTP expiration 10 minutes from now
+
+        $otpMessage = 'Your OTP for Registration is: ' . $phoneOtp . ' This is valid for 10 mins. Do not share it with anyone. - GLOBE TECHNOLOGIES';
+        try {
+            $toNumber = $request->phone;
+            $response = $this->smsService->sendSms($otpMessage, $toNumber);
+            if ($response[0]['status'] == "success") {
+                $user->update(["phone_otp" => $phoneOtp, "phone_otp_exp" => $phoneOtpExp]);
+                return $this->responseSuccess([], 'Confirmation OTP is sent to your registered phone.');
+            }
+            return $this->responseError('Number is not registered.', 404);
+        } catch (\Exception $e) {
+            return $this->responseError($e->getMessage(), 404);
+        }
+    }
+
 
     public function index() {}
 

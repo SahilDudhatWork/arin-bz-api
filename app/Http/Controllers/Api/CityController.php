@@ -9,10 +9,14 @@ use App\Models\City;
 
 class CityController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // Fetch all cities
-        $cities = City::all();
+        $keyword = $request->input('keyword'); // Get the search keyword from the request
+        $cities = City::when(!empty($keyword), function ($query) use ($keyword) {
+            $query->where(function ($q) use ($keyword) {
+                $q->where('name', 'LIKE', "%{$keyword}%");
+            });
+        })->get();
         return $this->responseSuccess(['cities' => $cities], 'Cities fetched successfully');
     }
 
