@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreBusinessRequest;
+use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateBusinessRequest;
 use App\Http\Requests\UpdateBusinessProfileRequest;
+use App\Http\Requests\UpdateUserRequest;
 use App\Models\Business;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -26,9 +28,9 @@ class UserController extends Controller
         $request->validate([
             'phone' => 'required|string|regex:/^\+?[0-9]{10,15}$/',
         ]);
-        $business = Business::where('business_number', $request->phone)->first();
-        if (!$business) {
-            return $this->responseError('Business number is not registered.', 404);
+        $user = User::where('number', $request->phone)->first();
+        if (!$user) {
+            return $this->responseError('User number is not registered.', 404);
         }
 
 
@@ -40,10 +42,10 @@ class UserController extends Controller
             $toNumber = $request->phone;
             $response = $this->smsService->sendSms($otpMessage, $toNumber);
             if ($response[0]['status'] == "success") {
-                $business->update(["phone_otp" => $phoneOtp, "phone_otp_exp" => $phoneOtpExp]);
+                $user->update(["phone_otp" => $phoneOtp, "phone_otp_exp" => $phoneOtpExp]);
                 return $this->responseSuccess([], 'Confirmation OTP is sent to your registered phone.');
             }
-            return $this->responseError('Business number is not registered.', 404);
+            return $this->responseError('Number is not registered.', 404);
         } catch (\Exception $e) {
             return $this->responseError($e->getMessage(), 404);
         }
@@ -55,37 +57,36 @@ class UserController extends Controller
             'otp' => 'required|numeric|digits:6',
         ]);
 
-        // Find the business by phone number
-        $business = Business::where('business_number', $request->phone)->first();
+        $user = User::where('number', $request->phone)->first();
 
-        if (!$business) {
-            return $this->responseError('Business number is not registered.', 404);
+        if (!$user) {
+            return $this->responseError('Number is not registered.', 404);
         }
 
         // Check if OTP matches and is not expired
         if (
-            $business->phone_otp === $request->otp &&
-            now()->lt($business->phone_otp_exp)
+            $user->phone_otp === $request->otp &&
+            now()->lt($user->phone_otp_exp)
         ) {
             // Clear OTP after successful validation for security
-            $business->update(['phone_otp' => null, 'phone_otp_exp' => null]);
+            $user->update(['phone_otp' => null, 'phone_otp_exp' => null]);
 
             // Generate JWT token
-            $token = JWTAuth::fromUser($business);
+            $token = JWTAuth::fromUser($user);
 
             // Return success response with token
             return $this->responseSuccess([
-                'business' => $business,
+                'user' => $user,
                 'token' => $token,
             ], 'OTP is valid. Login successful.');
 
 
             // Return success response
-            return $this->responseSuccess(['business' => $business], 'OTP is valid. Login successful.');
+            return $this->responseSuccess(['user' => $user], 'OTP is valid. Login successful.');
         }
 
         // Handle invalid or expired OTP
-        if (now()->gte($business->phone_otp_exp)) {
+        if (now()->gte($user->phone_otp_exp)) {
             return $this->responseError('OTP has expired. Please request a new OTP.', 422);
         }
 
@@ -93,27 +94,12 @@ class UserController extends Controller
     }
 
 
-    public function index()
-    {
-        try {
-            // Return all businesses
-            $businesses = Business::with(['category'])->get();
-            return $this->responseSuccess(['businesses' => $businesses], 'Businesses fetched successfully');
-        } catch (\Exception $e) {
-            return $this->responseError($e->getMessage(), 404);
-        }
-    }
+    public function index() {}
 
-    public function store(Request $request)
+    public function store(StoreUserRequest $request)
     {
         try {
-            $validated = $request->validate([
-                'name' => 'required|string|max:255',
-                'email' => 'required|string|email|max:255|unique:users',
-                'number' => 'required|string|max:15|unique:users',
-                'password' => 'required|string|min:8|confirmed',
-            ]);
-            $user = User::create($validated);
+            $user = User::create($request->validated());
 
             return $this->responseSuccess(['user' => $user], 'User registered successfully.');
         } catch (\Exception $e) {
@@ -121,87 +107,21 @@ class UserController extends Controller
         }
     }
 
-    public function show($id)
+    public function show($id) {}
+    public function profile(Request $request) {}
+    public function update(UpdateUserRequest $request, $id)
     {
-        try {
-            $business = Business::with(['category'])->find($id);
-
-            if (!$business) {
-                return $this->responseError('Business not found', 404);
-            }
-
-            return $this->responseSuccess(['business' => $business], 'Business fetched successfully');
-        } catch (\Exception $e) {
-            return $this->responseError($e->getMessage(), 404);
+        $userDtl = User::find($id);
+        if (!$userDtl) {
+            return $this->responseError('User not found', 404);
         }
-    }
-    public function profile(Request $request)
-    {
-        try {
-            $business = auth('business')->user();
-
-            if (!$business) {
-                return $this->responseError('Business not found', 404);
-            }
-
-            return $this->responseSuccess(['business' => $business], 'Profile fetched successfully');
-        } catch (\Exception $e) {
-            return $this->responseError($e->getMessage(), 404);
-        }
-    }
-    public function updateProfile(UpdateBusinessProfileRequest $request)
-    {
-        try {
-            $business = auth('business')->user();
-            $businessDtl = Business::find($business->id);
-
-            if (!$businessDtl) {
-                return $this->responseError('Business not found', 404);
-            }
-            $validatedData = $request->validated();
-
-            $businessDtl->update($validatedData);
-            return $this->responseSuccess(['business' => $businessDtl], 'Business-profile updated successfully');
-        } catch (\Exception $e) {
-            return $this->responseError($e->getMessage(), 404);
-        }
+        $validatedData = $request->validated();
+        $userDtl->update($validatedData);
+        return $this->responseSuccess(['user' => $userDtl], 'User updated successfully');
     }
 
 
-    public function update(UpdateBusinessRequest $request, $id)
-    {
-        try {
-            $business = Business::find($id);
-
-            if (!$business) {
-                return $this->responseError('Business not found', 404);
-            }
-            $validatedData = $request->validated();
-
-            $business->update($validatedData);
 
 
-            return $this->responseSuccess(['business' => $business], 'Business updated successfully');
-        } catch (\Exception $e) {
-            return $this->responseError($e->getMessage(), 404);
-        }
-    }
-
-
-    public function destroy($id)
-    {
-        try {
-            $business = Business::find($id);
-
-            if (!$business) {
-                return $this->responseError('Business not found', 404);
-            }
-
-            $business->delete();
-
-            return $this->responseSuccess(['business' => $business], 'Business deleted successfully');
-        } catch (\Exception $e) {
-            return $this->responseError($e->getMessage(), 404);
-        }
-    }
+    public function destroy($id) {}
 }

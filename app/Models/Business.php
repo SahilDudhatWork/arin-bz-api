@@ -15,6 +15,7 @@ class Business extends Authenticatable implements JWTSubject // If using JWT
     protected $fillable = [
         'business_name',
         'business_number',
+        'profile_image',
         'business_email',
         'business_description',
         'category_id',
@@ -29,6 +30,10 @@ class Business extends Authenticatable implements JWTSubject // If using JWT
     public function products()
     {
         return $this->hasMany(Product::class, 'business_id');
+    }
+    public function getprofileImageAttribute($value)
+    {
+        return isset($value) && !empty($value) ? url('/storage/' . $value) : null;
     }
 
     // Implement the necessary methods for JWT authentication

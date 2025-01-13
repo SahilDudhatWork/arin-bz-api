@@ -20,6 +20,7 @@ class Product extends Model
         'number_of_bedrooms',
         'number_of_bathrooms',
         'location',
+        'city',
         'latitude',
         'longitude',
         'description',
@@ -56,5 +57,10 @@ class Product extends Model
     public function business()
     {
         return $this->belongsTo(Business::class, 'business_id');
+    }
+
+    public function inquiries()
+    {
+        return $this->hasMany(ProductInquiry::class);
     }
 }
